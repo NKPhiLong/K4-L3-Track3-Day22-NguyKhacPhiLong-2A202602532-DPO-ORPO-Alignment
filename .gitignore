@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+# notebooks/*.ipynb IS committed for submission (outputs kept for grading).
+# The Jupytext `.py` files are the source of truth.
+
+# Lab artifacts: weights stay local. The small evidence files below ARE committed,
+# because the auto-grader reads only what is in the repo.
+models/
+adapters/*
+!adapters/.gitkeep
+!adapters/*/
+adapters/*/*
+!adapters/*/adapter_config.json
+!adapters/*/dpo_metrics.json
+!adapters/*/split.json
+!adapters/*/variants_summary.json
+!adapters/*/grpo_metrics.json
+data/pref/*
+!data/pref/*.parquet
+data/eval/*
+!data/eval/*.json
+!data/eval/*.jsonl
+data/eval/lm_eval/
+gguf*/
+*.gguf
+runs/
+wandb/
+
+# HuggingFace cache
+.cache/
+hf_cache/
+
+# Env / secrets
+.env
+.env.local
+*.token
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

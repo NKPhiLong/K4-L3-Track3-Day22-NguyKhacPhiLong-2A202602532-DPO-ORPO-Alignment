@@ -1,0 +1,9 @@
+# BigGPU extras (A100 / L4 / H100). Install IN ADDITION to requirements.txt.
+#
+#     pip install -r requirements.txt -r requirements-biggpu.txt
+#
+# vLLM pins its own torch build. If the resolver fights Unsloth, install vLLM in
+# a separate venv: it is only used for the optional serving command in NB5.
+
+vllm>=0.10                                     # OpenAI-compatible serving with --enable-lora
+flash-attn>=2.7,<3.0; sys_platform == 'linux'

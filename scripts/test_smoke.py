@@ -1,0 +1,50 @@
+"""CPU-only structural checks: sources parse, trainer APIs match TRL 1.13 /
+transformers 5, and the Colab bundles are in sync with the sources.
+
+Run:  pytest -q scripts/   (or `make test`).
+"""
+from __future__ import annotations
+
+import ast
+import json
+import re
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+NOTEBOOKS = [
+    "00_dpo_loss_from_scratch", "01_sft_mini", "02_preference_data", "03_dpo_train",
+    "03b_dpo_variants", "04_compare_and_eval", "05_merge_deploy_gguf", "06_benchmark",
+    "07_grpo_bonus",
+]
+SOURCES = [REPO / "notebooks" / f"{nb}.py" for nb in NOTEBOOKS] + sorted((REPO / "scripts").glob("*.py")) + sorted(
+    (REPO / "lab22").glob("*.py")
+)
+
+
+def test_sources_exist_and_parse():
+    for p in SOURCES:
+        assert p.exists(), f"missing {p}"
+        ast.parse(p.read_text(encoding="utf-8"), filename=str(p))
+
+
+def test_no_removed_trainer_arguments():
+    # tokenizer= (TRL >= 0.13), warmup_ratio (transformers 5), max_prompt_length (TRL 1.x DPOConfig).
+    banned = re.compile(r"\btokenizer\s*=\s*tokenizer\b|\bwarmup_ratio\s*=|\bmax_prompt_length\s*=")
+    offenders = [str(p.relative_to(REPO)) for p in SOURCES if banned.search(p.read_text(encoding="utf-8"))]
+    assert not offenders, f"removed trainer arguments in {offenders}"
+
+
+def test_no_hardcoded_judge_model():
+    for p in SOURCES:
+        if p.name == "test_smoke.py":
+            continue
+        text = p.read_text(encoding="utf-8")
+        assert "gpt-4o-mini" not in text and "claude-haiku" not in text, f"hard-coded judge id in {p}"
+
+
+def test_colab_bundles_are_valid_and_current():
+    from build_colab import render
+
+    for tier, path in (("T4", "Lab22_DPO_T4.ipynb"), ("BIGGPU", "Lab22_DPO_BigGPU.ipynb")):
+        on_disk = json.loads((REPO / "colab" / path).read_text(encoding="utf-8"))
+        assert on_disk == render(tier), f"colab/{path} is stale: run `make colab`"
